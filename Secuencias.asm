@@ -1,0 +1,147 @@
+
+#include "p16f887.inc"
+
+; CONFIG1
+; __config 0x28D5
+ __CONFIG _CONFIG1, _FOSC_INTRC_CLKOUT & _WDTE_OFF & _PWRTE_OFF & _MCLRE_OFF & _CP_OFF & _CPD_OFF & _BOREN_OFF & _IESO_OFF & _FCMEN_ON & _LVP_OFF
+; CONFIG2
+; __config 0x3FFF
+ __CONFIG _CONFIG2, _BOR4V_BOR40V & _WRT_OFF
+
+ LIST p=16F887
+ 
+N	EQU 0xD0
+VARX	EQU 0x20
+VARY	EQU 0x21
+VARZ	EQU 0x22
+CONT1	EQU 0x23
+CONT2	EQU 0x24
+CONT3	EQU 0x25
+CONT4	EQU 0x26
+TEMP	EQU 0x27
+  
+    ORG 0x00
+    GOTO INICIO
+   
+INICIO
+
+    BCF	    STATUS,RP0  ;RP0 = 0
+    BCF	    STATUS,RP1  ;RP1 = 0
+    CLRF    PORTA	;PORTA = 0
+    CLRF    PORTB	;PORT SECUENCIA LED
+   
+    BSF	    STATUS, RP0	;RP0 = 1
+    CLRF    TRISA
+    CLRF    TRISB	;SECUENCIA SALIDA
+    BSF	    STATUS,RP1
+    CLRF    ANSEL
+    
+    BCF	    STATUS,RP0  ;BANK O RP1=0 RP0=0
+    BCF	    STATUS,RP1
+    
+    ;SE LE DAN VALORES A LOS COTADORES Y VARIABLES
+    MOVLW   0x03
+    MOVWF   CONT3
+    
+    MOVLW   0x04
+    MOVWF   CONT4
+    
+    MOVLW   0x40
+    MOVWF   VARX
+   
+    MOVLW   0x03
+    MOVWF   VARY
+    
+    MOVLW   0xC0
+    MOVWF   VARZ
+    
+    MOVLW   0x81
+    MOVWF   PORTB
+    MOVWF   TEMP
+    CALL    RETARDO
+   
+
+LOOP6_1
+    MOVF    TEMP, 0	;SE ASEGURA QUE W SEA IGUAL A TEMP
+    XORWF   VARY, 0
+    IORWF   VARX, 0
+    MOVWF   PORTB
+    MOVWF   TEMP	;SE GUARDDA EL VALOR DE W EN TEMP
+    CALL    RETARDO
+    RRF	    VARX
+    RLF	    VARY
+    DECFSZ  CONT3, 1
+    GOTO    LOOP6_1
+
+    
+LIMPIAR
+    MOVLW   0x03
+    MOVWF   CONT3
+    CLRW
+    IORWF   VARY,0
+    MOVWF   TEMP
+    MOVWF   PORTB
+    CALL    RETARDO
+    RRF	    VARX
+    RLF	    VARY
+    
+    
+LOOP6_2
+    MOVF    TEMP, 0
+    XORWF   VARY, 0
+    IORWF   VARX, 0
+    MOVWF   PORTB
+    MOVWF   TEMP
+    CALL    RETARDO
+    RRF	    VARX
+    RLF	    VARY
+    DECFSZ  CONT3, 1
+    GOTO    LOOP6_2
+    
+    ;FIN DEL LOOP 6
+    MOVLW   0x03
+    MOVWF   CONT3	;SE REINICIA EL CONTADOR 3
+    BCF	    STATUS, C	;SE ASEGURA QUE EL CARRY SEA 0
+
+    
+
+LOOP8_1
+    MOVF    VARZ, 0
+    MOVWF   PORTB
+    CALL    RETARDO
+    RRF	    VARZ, 1
+    RRF	    VARZ, 1
+    DECFSZ  CONT3, 1
+    GOTO    LOOP8_1
+
+    
+LOOP8_2
+    MOVF    VARZ, 0
+    MOVWF   PORTB
+    CALL    RETARDO
+    RLF	    VARZ, 1
+    RLF	    VARZ, 1
+    DECFSZ  CONT4, 1
+    GOTO    LOOP8_2
+    
+    ;FIN DEL LOOP 8
+    GOTO    INICIO
+    
+
+RETARDO
+    MOVLW   N
+    MOVWF   CONT1
+   
+REP_1
+    MOVLW   N
+    MOVWF   CONT2
+   
+REP_2
+    DECFSZ  CONT2,1
+    GOTO    REP_2
+    DECFSZ  CONT1,1
+    GOTO    REP_1
+    RETURN
+
+    
+    END
