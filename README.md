@@ -1,5 +1,5 @@
 # Secuencias Assembler
-Se programo un codigo que permita encender un arreglo de 8 leds siguiendo las siguientes secuencias:
+Se programo un codigo en C y en Assembly que permita encender un arreglo de 8 leds siguiendo las siguientes secuencias:
 
 ## Secuencia 6
 
